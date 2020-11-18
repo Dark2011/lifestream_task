@@ -8,12 +8,15 @@
 
 
 client_driver::client_driver(boost::asio::io_context& service, const std::string& ipaddr, int port)
-		: _transport{ new transport(service, ipaddr, port) }
-		, _processors{}
-	{
-		;
-	}
+	: _processors {}
+	, _transport{ new transport(service, ipaddr, port) }
+	, _done{false}
+{
+	;
+}
 
+
+client_driver::~client_driver() { _done = true; }
 
 
 void client_driver::initialaze(const std::filesystem::path& path, const int max_pack_size, const int random_repeat_pack_precentege)
@@ -32,84 +35,118 @@ void client_driver::initialaze(const std::filesystem::path& path, const int max_
 
 void client_driver::run(mode mode)
 {
-	//std::vector<std::thread> handlers;
-	//for (auto& pr : _processors)
-	//	handlers.emplace_back(&client_driver::run_impl, this, pr.first);
-
-	//std::for_each(handlers.begin(), handlers.end(), [](auto& thread)
-	//	{
-	//		thread.join();
-	//		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	//	});
-
-	if (mode == mode::siglethread)
+	if (mode::singlethread == mode)
 	{
-		uint64_t finished = 0;
+		uint64_t finishedId = 0;
 		while (_processors.size())
 		{
 			for (auto& iter = _processors.begin(); iter != _processors.end(); ++iter)
 			{
-				run_impl(iter->first);
+				run_impl_single(iter->first);
 				if (iter->second->get_state() == file_processor::state::Done)
-					finished = iter->first;
+					finishedId = iter->first;
 			}
-			_processors.erase(finished);
+			_processors.erase(finishedId);
 		}
 	}
 	else
 	{
-		std::vector<std::thread> handlers;
 		for (auto& pr : _processors)
-			handlers.emplace_back(&client_driver::run_impl, this, pr.first);
+			_tasks.push(std::bind(&client_driver::run_impl_multi, this, pr.first));
 
-		std::for_each(handlers.begin(), handlers.end(), [](auto& thread)
-		{
-			thread.join();
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		});
+		const auto real_cpu = std::thread::hardware_concurrency() / 2;
+		for (unsigned int i = 0; i < real_cpu; ++i)
+			_thread_pool.push_back(std::thread(&client_driver::worker_thread, this));
+
+		for (unsigned int i = 0; i < _thread_pool.size(); ++i)
+			_thread_pool[i].join();
 	}
 
-
-	std::cout << "Done!!!" << std::endl;
+	BOOST_LOG_TRIVIAL(trace) << "All tasks are performed!!!";
+	//std::cout << "All tasks are performed!!!" << std::endl;
 }
 
 
-void client_driver::run_impl(uint64_t key)
+void client_driver::worker_thread()
+{
+	while (!_done)
+	{
+		_task_lock.lock();
+		if (!_tasks.empty())
+		{
+			auto task = _tasks.front();
+			_tasks.pop();
+			_task_lock.unlock();
+			task();
+		}
+		else
+		{
+			_task_lock.unlock();
+			std::this_thread::yield();
+			if (_processors.empty())
+				_done = true;
+		}
+
+	}
+}
+
+
+void client_driver::run_impl_single(uint64_t key)
 {
 	auto& proc = _processors[key];
-	while (file_processor::state::Done != proc->get_state())
-	//if(file_processor::state::Done != proc->get_state())
+
+	if(file_processor::state::Done != proc->get_state())
 	{
-		//std::cout << "handle file processor " << key << std::endl;
 		BOOST_LOG_TRIVIAL(trace) << "handle file processor " << key;
-		
-		std::vector<uint8_t> recv_data;
+		//std::cout << "handle file processor " << key << std::endl;
+
 		auto package = proc->get_next_package();
 		if (_transport->send_package(package))
 		{
-			if (_transport->recv_package(recv_data))
+			if (_transport->recv_package())
 			{
-				//auto recv_buffer = _transport->get_recv_data();
-				if (recv_data.size() >= sizeof(message_hdr))
-				{
-					message_hdr* hdr = (message_hdr*)&recv_data[0];
-					proc->handle_ack_package(hdr);
-				}
+				auto recv_data = _transport->get_recv_data();
+				if (recv_data.size() >= HEADER_SIZE)
+					proc->handle_ack_package(recv_data);
 			}
 
 		}
 		BOOST_LOG_TRIVIAL(trace) << "=========================";
 		//std::cout << "=========================" << std::endl;
 	}
-	//else
-	//{
-	//	BOOST_LOG_TRIVIAL(trace) << "Processor " << key << " is done";
-	//	//std::cout << "Processor " << key << " is done" << std::endl;
-	//	//_processors.erase(key);
-	//}
+	else
+	{
+		BOOST_LOG_TRIVIAL(trace) << "Processor " << key << " is done";
+		//std::cout << "Processor " << key << " is done" << std::endl;
+	}
+}
+
+
+void client_driver::run_impl_multi(uint64_t key)
+{
+	auto& proc = _processors[key];
+	while (file_processor::state::Done != proc->get_state())
+	{		
+		BOOST_LOG_TRIVIAL(trace) << "handle file processor " << key;
+		//std::cout << "handle file processor " << key << std::endl;
+		
+		auto package = proc->get_next_package();
+		if (_transport->send_package(package))
+		{
+			if (_transport->recv_package())
+			{
+				auto recv_data = _transport->get_recv_data();
+				if (recv_data.size() >= HEADER_SIZE)
+					proc->handle_ack_package(recv_data);
+			}
+
+		}
+		BOOST_LOG_TRIVIAL(trace) << "=========================";
+		//std::cout << "=========================" << std::endl;
+	}
 
 	BOOST_LOG_TRIVIAL(trace) << "Processor " << key << " is done";
-	//_processors.erase(key);
+	_processors.erase(key);
 }
 
 

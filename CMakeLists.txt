@@ -15,7 +15,7 @@ set(Boost_USE_MULTITHREADED ON)
 find_package(Boost REQUIRED date_time system iostreams thread log)
 
 set(HDR message.h fileprocessor.h driver.h transport.h)
-set(SRC driver.cpp main.cpp)
+set(SRC fileprocessor.cpp driver.cpp transport.cpp main.cpp)
 
 add_executable(client ${HDR} ${SRC})
 
@@ -29,6 +29,9 @@ target_include_directories(client
 )
 
 target_link_libraries(client PUBLIC Boost::system Boost::date_time Boost::iostreams Boost::thread Boost::log)
+
+target_compile_definitions(client PRIVATE MULTITHREAD)
+
 
 install(TARGETS client RUNTIME DESTINATION bin)	
 
