@@ -3,11 +3,12 @@
 boost::asio::io_service service;
 
 
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 
 void start_service()
 {
 	std::shared_ptr<client_driver> driver{ new client_driver{service, "127.0.0.1", 7755} };
-	driver->initialaze(std::filesystem::current_path() / "testdata", MAX_PACKAGE_SIZE, REPEAT_PACK_VALUE);
+	driver->initialaze(std::experimental::filesystem::current_path() / "testdata", MAX_PACKAGE_SIZE, REPEAT_PACK_VALUE);
 #ifndef MULTITHREAD
 	driver->run(client_driver::mode::singlethread);	
 #else 

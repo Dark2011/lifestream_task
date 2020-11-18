@@ -9,7 +9,7 @@
 #include <boost/log/trivial.hpp>
 
 
-file_processor::file_processor(const std::filesystem::path& path)
+file_processor::file_processor(const std::experimental::filesystem::path& path)
 	: _path{ path }
 {
 	;
@@ -23,7 +23,7 @@ bool file_processor::initialize(size_t max_pack_size, uint8_t repeat_pack_perc)
 		_max_pack_size = max_pack_size - HEADER_SIZE;
 
 		std::ifstream file(_path, std::ios::binary);
-		auto fsize = std::filesystem::file_size(_path);
+		auto fsize = std::experimental::filesystem::file_size(_path);
 
 		_data = std::vector<uint8_t>(fsize);
 		file.read((char*)&_data[0], fsize);

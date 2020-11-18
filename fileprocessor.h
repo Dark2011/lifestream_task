@@ -6,7 +6,9 @@
 
 #include <string>
 #include <vector>
-#include <filesystem>
+//#include <filesystem>
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
 #include <set>
 
 #include <boost/noncopyable.hpp>
@@ -18,7 +20,7 @@ class file_processor : private boost::noncopyable
 public:
 	enum class state { Init, InProgress, Done };
 
-	file_processor(const std::filesystem::path& path = std::filesystem::current_path());
+	file_processor(const std::experimental::filesystem::path& path = std::experimental::filesystem::current_path());
 	//
 	bool initialize(size_t max_pack_size, uint8_t repeat_pack_perc);
 	//
@@ -32,7 +34,7 @@ private:
 	size_t get_current_datapack_size(uint32_t i) const;
 
 private:
-	std::filesystem::path _path;
+	std::experimental::filesystem::path _path;
 	//
 	state				 _state;
 	size_t				 _max_pack_size = 0;
