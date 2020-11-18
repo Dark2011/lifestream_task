@@ -1,14 +1,13 @@
 #include "driver.h"
 
-#include <boost/system/error_code.hpp>
 
 
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
-#include <utility>
 
 
-client_driver::client_driver(boost::asio::io_context& service, const std::string& ipaddr, int port)
+
+client_driver::client_driver(boost::asio::io_context& service, const std::string& ipaddr, uint16_t port)
 	: _processors {}
 	, _transport{ new transport(service, ipaddr, port) }
 	, _done{false}
@@ -20,11 +19,11 @@ client_driver::client_driver(boost::asio::io_context& service, const std::string
 client_driver::~client_driver() { _done = true; }
 
 
-void client_driver::initialaze(const std::experimental::filesystem::path& path, const int max_pack_size, const int random_repeat_pack_precentege)
+void client_driver::initialaze(const boost::filesystem::path& path, int max_pack_size, int random_repeat_pack_precentege)
 {
-	for (auto& file : std::experimental::filesystem::directory_iterator(path))
+	for (auto& file : boost::filesystem::directory_iterator(path))
 	{
-		if (std::experimental::filesystem::is_regular_file(file.symlink_status()))
+		if (boost::filesystem::is_regular_file(file.symlink_status()))
 		{
 			file_processor_ptr tf{ std::make_unique<file_processor>(file) };
 			if (tf->initialize(max_pack_size, random_repeat_pack_precentege))

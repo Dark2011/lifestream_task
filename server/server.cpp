@@ -1,7 +1,6 @@
 #include "server.h"
 
 
-#pragma once
 
 #include <QObject>
 #include <QtNetwork>

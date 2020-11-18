@@ -9,7 +9,8 @@
 #include <boost/log/trivial.hpp>
 
 
-file_processor::file_processor(const std::experimental::filesystem::path& path)
+
+file_processor::file_processor(const boost::filesystem::path& path)
 	: _path{ path }
 {
 	;
@@ -22,8 +23,8 @@ bool file_processor::initialize(size_t max_pack_size, uint8_t repeat_pack_perc)
 	{
 		_max_pack_size = max_pack_size - HEADER_SIZE;
 
-		std::ifstream file(_path, std::ios::binary);
-		auto fsize = std::experimental::filesystem::file_size(_path);
+		std::ifstream file(_path.string(), std::ios::binary);
+		auto fsize = boost::filesystem::file_size(_path);
 
 		_data = std::vector<uint8_t>(fsize);
 		file.read((char*)&_data[0], fsize);
@@ -88,11 +89,6 @@ const std::vector<uint8_t>& file_processor::get_next_package() const
 		if(HEADER_SIZE + payload != _current_package.size())
 			_current_package.resize(HEADER_SIZE + payload);
 
-		//std::copy((uint8_t*)&hdr, (uint8_t*)&hdr + sizeof(message_hdr), dataToSend.begin());
-		//int startPos = _jobs[_iter] * _max_pack_size;
-		//int endPos = startPos + payload;
-		//std::copy(_data.begin() + startPos, _data.begin() + endPos, dataToSend.begin() + sizeof(message_hdr));
-
 		memcpy(&_current_package[0], &hdr, HEADER_SIZE);
 		memcpy(&_current_package[HEADER_SIZE], &_data[hdr._seqNumber * _max_pack_size], payload);
 		//		
@@ -149,3 +145,4 @@ size_t file_processor::get_current_datapack_size(uint32_t i) const
 {
 	return _jobs[i] != _packages_cnt - 1 ? _max_pack_size : _remaining_data;
 }
+

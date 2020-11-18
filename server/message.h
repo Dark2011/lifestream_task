@@ -1,6 +1,9 @@
 #pragma once
 
-#include <stdint.h>
+
+#include <cstddef>
+#include <cstdint>
+
 
 const int ID_LENGTH = 8;
 const int ACK = 0;

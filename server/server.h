@@ -4,6 +4,8 @@
 #include <QtNetwork>
 #include <QDebug>
 #include <iostream>
+#include <memory>
+
 #include "message.h"
 
 
