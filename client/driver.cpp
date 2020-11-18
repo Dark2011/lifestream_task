@@ -24,24 +24,24 @@ void client_driver::initialaze(const std::experimental::filesystem::path& path, 
 {
 	for (auto& file : std::experimental::filesystem::directory_iterator(path))
 	{
-		//if (std::experimental::filesystem::is_regular_file(file.symlink_status()))
-		//{
+		if (std::experimental::filesystem::is_regular_file(file.symlink_status()))
+		{
 			file_processor_ptr tf{ std::make_unique<file_processor>(file) };
 			if (tf->initialize(max_pack_size, random_repeat_pack_precentege))
 				_processors.insert(std::make_pair(tf->get_id(), std::move(tf)));
-		//}
+		}
 	}
 }
 
 
 void client_driver::run(mode mode)
 {
-	if (mode::singlethread == mode)
+	if (client_driver::mode::singlethread == mode)
 	{
 		uint64_t finishedId = 0;
 		while (_processors.size())
 		{
-			for (auto& iter = _processors.begin(); iter != _processors.end(); ++iter)
+			for (auto&& iter = _processors.begin(); iter != _processors.end(); ++iter)
 			{
 				run_impl_single(iter->first);
 				if (iter->second->get_state() == file_processor::state::Done)

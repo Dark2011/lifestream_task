@@ -44,6 +44,7 @@ private:
 	std::mutex _operation_access_lock;
 	std::mutex _complete_operation_lock;
 	std::mutex _timer_lock;
+	std::mutex _test_lock;
 	std::condition_variable _complete_condition;
 	//
 	boost::system::error_code _last_error;

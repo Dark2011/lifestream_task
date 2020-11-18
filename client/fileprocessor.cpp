@@ -80,9 +80,9 @@ const std::vector<uint8_t>& file_processor::get_next_package() const
 
 		if (!_send_packet_checker.count(hdr._seqNumber))
 			_send_packet_checker.insert(hdr._seqNumber);
-		else
-			//std::cout << "packet " << hdr._seqNumber << " has already been sended" << std::endl;
-			BOOST_LOG_TRIVIAL(warning) << "!!! packet " << hdr._seqNumber << " has already been sended (Idempotent condition) !!!";
+		else			
+			BOOST_LOG_TRIVIAL(warning) << "!!! package " << hdr._seqNumber << " has already been sended (Idempotent condition) !!!";
+			//std::cout << "!!! package " << hdr._seqNumber << " has already been sended (Idempotent condition) !!!" << std::endl;
 
 		const size_t payload = get_current_datapack_size(_iter);
 		if(HEADER_SIZE + payload != _current_package.size())

@@ -1,15 +1,10 @@
 #pragma once
 
-
 #include <stdint.h>
 
 const int ID_LENGTH = 8;
 const int ACK = 0;
 const int PUT = 1;
-
-const int MAX_PACKAGE_SIZE = 1472;
-const int REPEAT_PACK_VALUE = 3;
-
 
 #pragma pack (push, 1)
 struct message_hdr
@@ -22,7 +17,9 @@ struct message_hdr
 #pragma pack (pop)
 
 
+const int MAX_PACKAGE_SIZE = 1472;
 const int HEADER_SIZE = sizeof(message_hdr);
+const int MAX_PAYLOAD = MAX_PACKAGE_SIZE - HEADER_SIZE;
 
 
 inline uint32_t crc32c(uint32_t crc, const unsigned char* buf, size_t len)

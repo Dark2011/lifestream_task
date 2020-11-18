@@ -28,10 +28,9 @@ target_include_directories(client
     PUBLIC ${Boost_INCLUDE_DIR} 
 )
 
-target_link_libraries(client PUBLIC Boost::system Boost::date_time Boost::iostreams Boost::thread Boost::log)
+target_link_libraries(client PUBLIC Boost::system Boost::date_time Boost::iostreams Boost::thread Boost::log stdc++fs)
 
-target_compile_definitions(client PRIVATE MULTITHREAD)
-
+#target_compile_definitions(client PRIVATE MULTITHREAD)
 
 install(TARGETS client RUNTIME DESTINATION bin)	
 
