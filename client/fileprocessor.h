@@ -6,9 +6,9 @@
 
 #include <string>
 #include <vector>
-#include <filesystem>
 #include <set>
 
+#include <boost/filesystem.hpp>
 #include <boost/noncopyable.hpp>
 
 
@@ -18,7 +18,7 @@ class file_processor : private boost::noncopyable
 public:
 	enum class state { Init, InProgress, Done };
 
-	file_processor(const std::filesystem::path& path = std::filesystem::current_path());
+	file_processor(const boost::filesystem::path& path = boost::filesystem::current_path());
 	//
 	bool initialize(size_t max_pack_size, uint8_t repeat_pack_perc);
 	//
@@ -32,21 +32,21 @@ private:
 	size_t get_current_datapack_size(uint32_t i) const;
 
 private:
-	std::filesystem::path _path;
+	boost::filesystem::path 	 _path;
 	//
 	state				 _state;
 	size_t				 _max_pack_size = 0;
 	//
 	uint8_t				 _id[ID_LENGTH];
-	std::vector<uint8_t> _data;	
-	std::vector<int>	 _jobs;
+	std::vector<uint8_t> 		_data;	
+	std::vector<int>		_jobs;
 	uint32_t			 _iter = 0;
 	//
-	mutable std::vector<uint8_t> _current_package;
-	uint32_t					 _packages_cnt = 0;
-	uint32_t					 _remaining_data = 0;	
+	mutable std::vector<uint8_t> 	_current_package;
+	uint32_t			_packages_cnt = 0;
+	uint32_t			_remaining_data = 0;	
 	//
-	mutable std::set<uint32_t>	 _send_packet_checker;
+	mutable std::set<uint32_t>	_send_packet_checker;
 };
 
 

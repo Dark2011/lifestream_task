@@ -1,13 +1,13 @@
 #include "driver.h"
 
-#include <boost/system/error_code.hpp>
 
 
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 
 
-client_driver::client_driver(boost::asio::io_context& service, const std::string& ipaddr, int port)
+
+client_driver::client_driver(boost::asio::io_context& service, const std::string& ipaddr, uint16_t port)
 	: _processors {}
 	, _transport{ new transport(service, ipaddr, port) }
 	, _done{false}
@@ -19,15 +19,15 @@ client_driver::client_driver(boost::asio::io_context& service, const std::string
 client_driver::~client_driver() { _done = true; }
 
 
-void client_driver::initialaze(const std::filesystem::path& path, const int max_pack_size, const int random_repeat_pack_precentege)
+void client_driver::initialaze(const boost::filesystem::path& path, int max_pack_size, int random_repeat_pack_precentege)
 {
-	for (auto& file : std::filesystem::directory_iterator(path))
+	for (auto& file : boost::filesystem::directory_iterator(path))
 	{
-		if (std::filesystem::is_regular_file(file.symlink_status()))
+		if (boost::filesystem::is_regular_file(file.symlink_status()))
 		{
 			file_processor_ptr tf{ std::make_unique<file_processor>(file) };
 			if (tf->initialize(max_pack_size, random_repeat_pack_precentege))
-				_processors.insert(std::pair(tf->get_id(), std::move(tf)));
+				_processors.insert(std::make_pair(tf->get_id(), std::move(tf)));
 		}
 	}
 }
@@ -35,12 +35,12 @@ void client_driver::initialaze(const std::filesystem::path& path, const int max_
 
 void client_driver::run(mode mode)
 {
-	if (mode::singlethread == mode)
+	if (client_driver::mode::singlethread == mode)
 	{
 		uint64_t finishedId = 0;
 		while (_processors.size())
 		{
-			for (auto& iter = _processors.begin(); iter != _processors.end(); ++iter)
+			for (auto&& iter = _processors.begin(); iter != _processors.end(); ++iter)
 			{
 				run_impl_single(iter->first);
 				if (iter->second->get_state() == file_processor::state::Done)
