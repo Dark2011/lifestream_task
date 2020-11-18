@@ -83,7 +83,7 @@ void transport::on_send(const boost::system::error_code& ec, size_t size)
 		{
 			_last_send_bytes = 0;
 			// it's not an error case - just cancel after successeful on_tiner abort operations
-			BOOST_LOG_TRIVIAL(trace) << "Send operation aborted by timer (transport)";
+			//BOOST_LOG_TRIVIAL(trace) << "Send operation aborted by timer (transport)";
 			//std::cout << "Receive operation aborted (transport)" << std::endl;
 			return;
 		}
@@ -111,7 +111,7 @@ void transport::on_recv(const boost::system::error_code& ec, size_t size)
 		{
 			_last_read_bytes = 0;
 			// it's not an error case - just cancel after successeful on_tiner abort operations
-			BOOST_LOG_TRIVIAL(trace) << "Receive operation aborted by timer (transport)";
+			//BOOST_LOG_TRIVIAL(trace) << "Receive operation aborted by timer (transport)";
 			//std::cout << "Receive operation aborted (transport)" << std::endl;
 			return;
 		}
@@ -134,7 +134,7 @@ void transport::on_timer(const boost::system::error_code& ec)
 		if (boost::asio::error::operation_aborted == ec.value())
 		{
 			// it's not an error case - just cancel after successeful on_send or on_recv operations
-			BOOST_LOG_TRIVIAL(trace) << "Timer operation aborted (transport)";
+			//BOOST_LOG_TRIVIAL(trace) << "Timer operation aborted (transport)";
 			//std::cout << "Timer operation aborted (transport)" << std::endl;
 			return;
 		}
